@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>受付</title>
+<style>body{font-family:"Hiragino Sans",sans-serif;text-align:center;padding:40px 20px;color:#333}</style>
+</head>
+<body>
+<p id="msg">受付処理中…</p>
+<script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var t = (p.get('t')||'').trim();
+  if(!t){ document.getElementById('msg').textContent='チケット番号がありません'; return; }
+  var lane = p.get('lane') || 'camera';
+  location.replace('https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNBMi1UInY7z5L_RNXqZ1-bEyjfKMI0o6wGSRqGyH1twg/exec?t=' + encodeURIComponent(t) + '&lane=' + encodeURIComponent(lane));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>受付 読み取り｜星渉 出版記念講演会</title>
+<style>
+:root{--ok:#1d8a4b;--ng:#c8322b;--warn:#d07f00;--ink:#1e1e1e;--sub:#666;--line:#ddd}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:#111;color:#fff;-webkit-text-size-adjust:100%}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#000;font-size:14px}
+header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid #555;background:#222;color:#fff}
+#reader{width:100%;max-width:480px;margin:0 auto;background:#000}
+#reader video{width:100%!important}
+.card{margin:10px 12px;border-radius:12px;padding:16px;background:#1e1e1e;min-height:120px;text-align:center;transition:background .2s}
+.card.ok{background:var(--ok)}
+.card.dup{background:var(--warn)}
+.card.ng{background:var(--ng)}
+.card .big{font-size:30px;font-weight:700;letter-spacing:.06em;line-height:1.2}
+.card .mid{font-size:22px;font-weight:600;margin-top:4px}
+.card .sm{font-size:13px;opacity:.9;margin-top:6px}
+.row{display:flex;gap:8px;margin:10px 12px}
+.row input{flex:1;font-size:18px;padding:10px;border-radius:8px;border:1px solid #555;background:#222;color:#fff}
+.row button{font-size:16px;padding:10px 16px;border-radius:8px;border:0;background:#3a7bd5;color:#fff;font-weight:600}
+.stats{display:flex;justify-content:space-around;margin:6px 12px 10px;font-size:13px;color:#bbb}
+.stats b{display:block;font-size:22px;color:#fff}
+.log{margin:0 12px 20px;font-size:13px;color:#bbb}
+.log div{padding:6px 0;border-bottom:1px solid #333}
+.q{color:#ffb347}
+#camBtn{margin:8px auto;display:block;font-size:15px;padding:8px 18px;border-radius:8px;border:1px solid #555;background:#222;color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div>受付 読み取り</div>
+  <div>レーン <select id="lane"><option>1</option><option>2</option><option>3</option><option>4</option><option>例外</option></select></div>
+</header>
+<div id="reader"></div>
+<button id="camBtn">カメラを開始</button>
+<div id="card" class="card"><div class="sm">QRコードをカメラに向けてください</div></div>
+<div class="row">
+  <input id="manual" placeholder="チケット番号を手入力（例 ueii2hz4）" autocapitalize="off" autocomplete="off">
+  <button id="send">送信</button>
+</div>
+<div class="stats">
+  <div>受付済（全体）<b id="total">-</b></div>
+  <div>この端末<b id="mine">0</b></div>
+  <div>未送信<b id="queued">0</b></div>
+</div>
+<div class="log" id="log"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNBMi1UInY7z5L_RNXqZ1-bEyjfKMI0o6wGSRqGyH1twg/exec';
+var laneSel = document.getElementById('lane');
+var card = document.getElementById('card');
+var logEl = document.getElementById('log');
+var mine = 0, lastToken = '', lastAt = 0;
+var queue = [];
+try{ laneSel.value = localStorage.getItem('lane') || '1'; }catch(e){}
+try{ queue = JSON.parse(localStorage.getItem('queue')||'[]'); }catch(e){ queue=[]; }
+laneSel.addEventListener('change', function(){ try{localStorage.setItem('lane', laneSel.value);}catch(e){} });
+updateQueued();
+
+function parseToken(text){
+  text = (text||'').trim();
+  var m = text.match(/[?&]t=([A-Za-z0-9]+)/);
+  if(m) return m[1].toLowerCase();
+  if(/^[A-Za-z0-9]{6,12}$/.test(text)) return text.toLowerCase();
+  return '';
+}
+function beep(kind){
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = kind==='ok' ? 1200 : 300; g.gain.value = 0.2;
+    o.start(); setTimeout(function(){ o.stop(); ctx.close(); }, kind==='ok'?120:350);
+  }catch(e){}
+  if(navigator.vibrate) navigator.vibrate(kind==='ok'?60:[120,60,120]);
+}
+function show(cls, big, mid, sm){
+  card.className = 'card ' + cls;
+  card.innerHTML = '<div class="big">'+big+'</div><div class="mid">'+(mid||'')+'</div><div class="sm">'+(sm||'')+'</div>';
+}
+function addLog(text, cls){
+  var d = document.createElement('div'); d.textContent = text; if(cls) d.className = cls;
+  logEl.insertBefore(d, logEl.firstChild);
+  while(logEl.children.length > 8) logEl.removeChild(logEl.lastChild);
+}
+function updateQueued(){
+  document.getElementById('queued').textContent = queue.length;
+  try{ localStorage.setItem('queue', JSON.stringify(queue)); }catch(e){}
+}
+function send(token, fromQueue){
+  if(!token) return;
+  var lane = laneSel.value;
+  var url = GAS_URL + '?t=' + encodeURIComponent(token) + '&lane=' + encodeURIComponent(lane) + '&fmt=json';
+  if(!fromQueue) show('', '送信中…', token, '');
+  return fetch(url, {method:'GET', redirect:'follow'}).then(function(r){ return r.json(); }).then(function(res){
+    if(res.ok){
+      mine++; document.getElementById('mine').textContent = mine;
+      if(res.count !== undefined) document.getElementById('total').textContent = res.count;
+      if(res.dup){
+        beep('ng');
+        show('dup', '⚠ 受付済', res.name + ' 様　' + res.seat, res.prevTime + ' に受付済みです（今回 ' + res.time + '）');
+        addLog(res.time + '  重複  ' + res.name + '  ' + res.seat, 'q');
+      }else{
+        beep('ok');
+        show('ok', '✓ ' + res.name + ' 様', res.seat + '　受付完了', res.time + '　レーン' + lane);
+        addLog(res.time + '  ' + res.name + '  ' + res.seat);
+      }
+    }else{
+      beep('ng');
+      show('ng', '✕ 見つかりません', token, '名簿にないチケット番号です。例外レーンへご案内ください');
+      addLog('不明  ' + token, 'q');
+    }
+    return true;
+  }).catch(function(err){
+    if(!fromQueue){
+      queue.push({t:token, lane:lane, at:Date.now()}); updateQueued();
+      beep('ng');
+      show('dup', '通信待ち', token, '電波が戻り次第、自動で送信します（未送信 ' + queue.length + ' 件）');
+      addLog('未送信  ' + token, 'q');
+    }
+    return false;
+  });
+}
+function onScan(text){
+  var token = parseToken(text);
+  if(!token) return;
+  var now = Date.now();
+  if(token === lastToken && now - lastAt < 3000) return;
+  lastToken = token; lastAt = now;
+  send(token, false);
+}
+document.getElementById('send').addEventListener('click', function(){
+  var v = document.getElementById('manual').value;
+  var token = parseToken(v);
+  if(!token){ show('ng', '番号の形式が違います', v, '英数字6〜12文字'); return; }
+  document.getElementById('manual').value = '';
+  send(token, false);
+});
+document.getElementById('manual').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('send').click(); });
+
+// 未送信の再送（10秒ごと）
+setInterval(function(){
+  if(!queue.length) return;
+  var item = queue[0];
+  var url = GAS_URL + '?t=' + encodeURIComponent(item.t) + '&lane=' + encodeURIComponent(item.lane) + '&fmt=json';
+  fetch(url).then(function(r){ return r.json(); }).then(function(res){
+    queue.shift(); updateQueued();
+    addLog('再送OK  ' + item.t + (res.ok ? '  ' + res.name : '  (不明)'));
+    if(res.count !== undefined) document.getElementById('total').textContent = res.count;
+  }).catch(function(){});
+}, 10000);
+
+// カメラ
+var scanner = null;
+document.getElementById('camBtn').addEventListener('click', function(){
+  var btn = this;
+  if(scanner){ scanner.stop().then(function(){ scanner=null; btn.textContent='カメラを開始'; }); return; }
+  scanner = new Html5Qrcode('reader');
+  scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, onScan, function(){})
+    .then(function(){ btn.textContent = 'カメラを停止'; })
+    .catch(function(err){ scanner = null; show('ng', 'カメラを開始できません', '', String(err)); });
+});
+</script>
+</body>
+</html>
