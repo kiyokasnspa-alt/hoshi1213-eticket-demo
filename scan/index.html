@@ -20,11 +20,18 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 .card .big{font-size:30px;font-weight:700;letter-spacing:.06em;line-height:1.2}
 .card .mid{font-size:22px;font-weight:600;margin-top:4px}
 .card .sm{font-size:13px;opacity:.9;margin-top:6px}
-.row{display:flex;gap:8px;margin:10px 12px}
+.late{margin:0 12px 8px;padding:10px 12px;border-radius:10px;background:#5a3a00;border:1px solid var(--warn);font-size:14px;display:none}
+.late.show{display:block}
+.row{display:flex;gap:8px;margin:10px 12px 4px}
 .row input{flex:1;font-size:18px;padding:10px;border-radius:8px;border:1px solid #555;background:#222;color:#fff}
 .row button{font-size:16px;padding:10px 16px;border-radius:8px;border:0;background:#3a7bd5;color:#fff;font-weight:600}
-.stats{display:flex;justify-content:space-around;margin:6px 12px 10px;font-size:13px;color:#bbb}
+.cands{margin:0 12px 6px}
+.cands button{display:flex;justify-content:space-between;width:100%;text-align:left;font-size:16px;padding:10px 12px;margin-top:6px;border-radius:8px;border:1px solid #444;background:#222;color:#fff}
+.cands button span{color:#bbb;font-size:14px}
+.stats{display:flex;justify-content:space-around;margin:6px 12px 4px;font-size:13px;color:#bbb}
 .stats b{display:block;font-size:22px;color:#fff}
+.sync{margin:0 12px 10px;font-size:12px;color:#888;text-align:center}
+.sync.off{color:#ffb347}
 .log{margin:0 12px 20px;font-size:13px;color:#bbb}
 .log div{padding:6px 0;border-bottom:1px solid #333}
 .q{color:#ffb347}
@@ -33,38 +40,55 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 </head>
 <body>
 <header>
-  <div>受付 読み取り</div>
+  <div>受付 読み取り <span id="dev" style="color:#777;font-size:12px"></span></div>
   <div>レーン <select id="lane"><option>1</option><option>2</option><option>3</option><option>4</option><option>例外</option></select></div>
 </header>
 <div id="reader"></div>
 <button id="camBtn">カメラを開始</button>
 <div id="card" class="card"><div class="sm">QRコードをカメラに向けてください</div></div>
+<div id="late" class="late"></div>
 <div class="row">
-  <input id="manual" placeholder="チケット番号を手入力（例 ueii2hz4）" autocapitalize="off" autocomplete="off">
+  <input id="manual" placeholder="番号 または 氏名で検索" autocapitalize="off" autocomplete="off">
   <button id="send">送信</button>
 </div>
+<div class="cands" id="cands"></div>
 <div class="stats">
-  <div>受付済（全体）<b id="total">-</b></div>
+  <div>受付済（全体）<b id="total">0</b></div>
   <div>この端末<b id="mine">0</b></div>
   <div>未送信<b id="queued">0</b></div>
 </div>
+<div class="sync" id="sync">サーバー未同期</div>
 <div class="log" id="log"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="../assets/html5-qrcode.min.js"></script>
 <script>
+// ---------- 設定 ----------
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNBMi1UInY7z5L_RNXqZ1-bEyjfKMI0o6wGSRqGyH1twg/exec';
+var ROSTER = {"ueii2hz4":["星 渉","1階 A-12","テスト団体"],"hrivhhr9":["赤木 瑞穂","1階 A-13","テスト団体"],"fqv7hhtt":["山野 清香（テスト）","1階 A-14","テスト団体"]};          // token → [氏名, 座席, 団体]（生成時に埋め込み）
+var SAME_GAP = 5000;                     // 同じQRが映り続けている間は再送しない（映らなくなって5秒で解除）
+var PAUSE_MS = 1500;                     // 読み取り直後にカメラを一時停止する時間
+var SYNC_MS  = 20000;                    // 他レーンの受付状況を取りに行く間隔
+var FETCH_TIMEOUT = 8000;
+
+// ---------- 状態（端末内に保存。再読み込みしても消えない） ----------
 var laneSel = document.getElementById('lane');
 var card = document.getElementById('card');
 var logEl = document.getElementById('log');
-var mine = 0, lastToken = '', lastSeen = 0;
-var SAME_GAP = 5000;   // 同じQRが映り続けている間は再送しない（映らなくなって5秒で解除）
-var PAUSE_MS = 1500;   // 読み取り直後にカメラを一時停止する時間
-var queue = [];
+var done = {};      // token → {t:'HH:mm:ss', lane:'1', src:'local'|'server'}
+var queue = [];     // 未送信 [{t, lane, dev, ts, localNew}]
+var mine = 0, lastToken = '', lastSeen = 0, sending = false, nextTry = 0;
+var DEV = '';
+function load(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+done = load('done_v2', {}); queue = load('queue_v2', []); mine = load('mine_v2', 0);
+DEV = load('dev_v2', ''); if(!DEV){ DEV = Math.random().toString(36).slice(2,6); save('dev_v2', DEV); }
 try{ laneSel.value = localStorage.getItem('lane') || '1'; }catch(e){}
-try{ queue = JSON.parse(localStorage.getItem('queue')||'[]'); }catch(e){ queue=[]; }
 laneSel.addEventListener('change', function(){ try{localStorage.setItem('lane', laneSel.value);}catch(e){} });
-updateQueued();
+document.getElementById('dev').textContent = '端末 ' + DEV;
+refreshStats();
 
+// ---------- 共通 ----------
+function hms(d){ d = d || new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2); }
 function parseToken(text){
   text = (text||'').trim();
   var m = text.match(/[?&]t=([A-Za-z0-9]+)/);
@@ -80,7 +104,7 @@ function beep(kind){
     o.frequency.value = kind==='ok' ? 1200 : 300; g.gain.value = 0.2;
     o.start(); setTimeout(function(){ o.stop(); ctx.close(); }, kind==='ok'?120:350);
   }catch(e){}
-  if(navigator.vibrate) navigator.vibrate(kind==='ok'?60:[120,60,120]);
+  try{ if(navigator.vibrate) navigator.vibrate(kind==='ok'?60:[120,60,120]); }catch(e){}
 }
 function show(cls, big, mid, sm){
   card.className = 'card ' + cls;
@@ -91,81 +115,124 @@ function addLog(text, cls){
   logEl.insertBefore(d, logEl.firstChild);
   while(logEl.children.length > 8) logEl.removeChild(logEl.lastChild);
 }
-function updateQueued(){
+function refreshStats(){
+  document.getElementById('total').textContent = Object.keys(done).length;
+  document.getElementById('mine').textContent = mine;
   document.getElementById('queued').textContent = queue.length;
-  try{ localStorage.setItem('queue', JSON.stringify(queue)); }catch(e){}
 }
-function send(token, fromQueue){
-  if(!token) return;
+function setSync(text, off){ var s = document.getElementById('sync'); s.textContent = text; s.className = 'sync' + (off ? ' off' : ''); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+// ---------- 受付（端末内で即判定 → 送信は裏で） ----------
+function handle(token, via){
+  var p = ROSTER[token];
   var lane = laneSel.value;
-  var url = GAS_URL + '?t=' + encodeURIComponent(token) + '&lane=' + encodeURIComponent(lane) + '&fmt=json';
-  if(!fromQueue) show('', '送信中…', token, '');
-  return fetch(url, {method:'GET', redirect:'follow'}).then(function(r){ return r.json(); }).then(function(res){
+  if(!p){
+    beep('ng');
+    show('ng', '✕ 見つかりません', esc(token), '名簿にないチケット番号です。例外レーンへご案内ください');
+    addLog(hms() + '  不明  ' + token, 'q');
+    return;
+  }
+  var name = p[0], seat = p[1];
+  var now = new Date();
+  var prev = done[token];
+  var localNew = !prev;
+  if(prev){
+    beep('ng');
+    var where = prev.lane ? '（レーン' + prev.lane + '）' : '';
+    show('dup', '⚠ 受付済', esc(name) + ' 様　' + esc(seat), prev.t + ' に受付済みです' + where + '（今回 ' + hms(now) + '）');
+    addLog(hms(now) + '  重複  ' + name + '  ' + seat, 'q');
+  }else{
+    done[token] = { t: hms(now), lane: lane, src: 'local' };
+    mine++; save('mine_v2', mine); save('done_v2', done);
+    beep('ok');
+    show('ok', '✓ ' + esc(name) + ' 様', esc(seat) + '　受付完了', hms(now) + '　レーン' + lane + (via==='manual' ? '　手入力' : ''));
+    addLog(hms(now) + '  ' + name + '  ' + seat);
+  }
+  queue.push({ t: token, lane: lane, dev: DEV, ts: now.toISOString(), localNew: localNew, name: name });
+  save('queue_v2', queue);
+  refreshStats();
+  pump();
+}
+
+// 送信は1件ずつ順番に。失敗したら残して少し待って再送（端末内の受付表示は影響を受けない）
+function fetchJson(url){
+  var ctrl = ('AbortController' in window) ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, FETCH_TIMEOUT) : null;
+  return fetch(url, { method:'GET', redirect:'follow', signal: ctrl ? ctrl.signal : undefined })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .finally(function(){ if(timer) clearTimeout(timer); });
+}
+function pump(){
+  if(sending || !queue.length || Date.now() < nextTry) return;
+  sending = true;
+  var item = queue[0];
+  var url = GAS_URL + '?t=' + encodeURIComponent(item.t) + '&lane=' + encodeURIComponent(item.lane) +
+            '&dev=' + encodeURIComponent(item.dev) + '&ts=' + encodeURIComponent(item.ts) + '&fmt=json';
+  fetchJson(url).then(function(res){
     if(res.ok){
-      if(res.count !== undefined) document.getElementById('total').textContent = res.count;
-      if(!res.dup){ mine++; document.getElementById('mine').textContent = mine; }
-      if(res.dup){
+      // 自分は「初めて」と判定したが、サーバーでは他レーンが先に受付していた → 遅れて知らせる
+      if(res.dup && item.localNew && res.prevLane && res.prevLane !== item.lane){
+        var el = document.getElementById('late');
+        el.textContent = '⚠ ' + res.name + ' 様は ' + res.prevTime + ' にレーン' + res.prevLane + ' で受付済みでした（このレーンでも受付しています）';
+        el.className = 'late show';
+        setTimeout(function(){ el.className = 'late'; }, 15000);
         beep('ng');
-        show('dup', '⚠ 受付済', res.name + ' 様　' + res.seat, res.prevTime + ' に受付済みです（今回 ' + res.time + '）');
-        addLog(res.time + '  重複  ' + res.name + '  ' + res.seat, 'q');
-      }else{
-        beep('ok');
-        show('ok', '✓ ' + res.name + ' 様', res.seat + '　受付完了', res.time + '　レーン' + lane);
-        addLog(res.time + '  ' + res.name + '  ' + res.seat);
+        addLog(hms() + '  他レーンで受付済  ' + res.name, 'q');
       }
+      if(!done[item.t] || done[item.t].src === 'local'){
+        done[item.t] = done[item.t] || { t: res.dup ? res.prevTime : res.time, lane: res.dup ? res.prevLane : res.lane, src: 'server' };
+      }
+      setSync('サーバー同期 ' + hms() + '　全体 ' + res.count + ' 名', false);
+      queue.shift();
+    }else if(res.error === 'not_found' || res.error === 'no_token'){
+      addLog(hms() + '  サーバー名簿に無し  ' + item.t, 'q');
+      queue.shift();
     }else{
-      beep('ng');
-      show('ng', '✕ 見つかりません', token, '名簿にないチケット番号です。例外レーンへご案内ください');
-      addLog('不明  ' + token, 'q');
+      // サーバー側の一時エラー → 残して再送
+      setSync('サーバー応答エラー、再送します（' + (res.message || res.error) + '）', true);
+      nextTry = Date.now() + 5000;
     }
-    return true;
   }).catch(function(err){
-    if(!fromQueue){
-      queue.push({t:token, lane:lane, at:Date.now()}); updateQueued();
-      beep('ng');
-      show('dup', '通信待ち', token, '電波が戻り次第、自動で送信します（未送信 ' + queue.length + ' 件）');
-      addLog('未送信  ' + token, 'q');
-    }
-    return false;
+    setSync('通信できません。受付は続けられます（未送信 ' + queue.length + ' 件は電波が戻り次第送信）', true);
+    nextTry = Date.now() + 5000;
+  }).then(function(){
+    save('queue_v2', queue); save('done_v2', done); refreshStats();
+    sending = false;
+    if(queue.length) setTimeout(pump, 50);
   });
 }
+setInterval(pump, 1000);
+
+// 他レーンの受付状況を取り込む（他レーンで受付済みの人をこの端末でも「受付済」と判定できるように）
+function sync(){
+  fetchJson(GAS_URL + '?op=list').then(function(res){
+    if(!res.ok) return;
+    var n = 0;
+    for(var k in res.done){
+      if(!done[k]){ var a = res.done[k].split('|'); done[k] = { t: a[0], lane: a[1] || '', src: 'server' }; n++; }
+    }
+    save('done_v2', done); refreshStats();
+    setSync('サーバー同期 ' + hms() + '　全体 ' + res.count + ' 名', false);
+  }).catch(function(){ if(!queue.length) setSync('通信できません。受付は続けられます', true); });
+}
+setInterval(sync, SYNC_MS); setTimeout(sync, 800);
+
+// ---------- カメラ ----------
 function onScan(text){
   var token = parseToken(text);
   if(!token) return;
   var now = Date.now();
-  // 同じQRがカメラに映り続けている間は1回だけ送る。別のQRを読むか、5秒以上映らなくなったら解除
   if(token === lastToken && now - lastSeen < SAME_GAP){ lastSeen = now; return; }
   lastToken = token; lastSeen = now;
   pauseCamera(PAUSE_MS);
-  send(token, false);
+  handle(token, 'camera');
 }
 function pauseCamera(ms){
   if(!scanner) return;
   try{ scanner.pause(true); }catch(e){ return; }
   setTimeout(function(){ try{ if(scanner) scanner.resume(); }catch(e){} }, ms);
 }
-document.getElementById('send').addEventListener('click', function(){
-  var v = document.getElementById('manual').value;
-  var token = parseToken(v);
-  if(!token){ show('ng', '番号の形式が違います', v, '英数字6〜12文字'); return; }
-  document.getElementById('manual').value = '';
-  send(token, false);
-});
-document.getElementById('manual').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('send').click(); });
-
-// 未送信の再送（10秒ごと）
-setInterval(function(){
-  if(!queue.length) return;
-  var item = queue[0];
-  var url = GAS_URL + '?t=' + encodeURIComponent(item.t) + '&lane=' + encodeURIComponent(item.lane) + '&fmt=json';
-  fetch(url).then(function(r){ return r.json(); }).then(function(res){
-    queue.shift(); updateQueued();
-    addLog('再送OK  ' + item.t + (res.ok ? '  ' + res.name : '  (不明)'));
-    if(res.count !== undefined) document.getElementById('total').textContent = res.count;
-  }).catch(function(){});
-}, 10000);
-
-// カメラ（scanner は var の巻き上げで onScan からも参照できる）
 var scanner = null;
 document.getElementById('camBtn').addEventListener('click', function(){
   var btn = this;
@@ -175,6 +242,33 @@ document.getElementById('camBtn').addEventListener('click', function(){
     .then(function(){ btn.textContent = 'カメラを停止'; })
     .catch(function(err){ scanner = null; show('ng', 'カメラを開始できません', '', String(err)); });
 });
+
+// ---------- 手入力／氏名検索（例外レーン用） ----------
+var manual = document.getElementById('manual'), cands = document.getElementById('cands');
+function norm(s){ return String(s).replace(/[\s　]+/g, '').toLowerCase(); }
+function search(q){
+  cands.innerHTML = '';
+  q = norm(q); if(q.length < 1) return [];
+  var hits = [];
+  for(var k in ROSTER){ if(norm(ROSTER[k][0]).indexOf(q) >= 0) hits.push(k); if(hits.length >= 8) break; }
+  hits.forEach(function(k){
+    var b = document.createElement('button');
+    var st = done[k] ? '　受付済 ' + done[k].t : '';
+    b.innerHTML = '<span style="color:#fff">' + esc(ROSTER[k][0]) + ' 様</span><span>' + esc(ROSTER[k][1]) + esc(st) + '</span>';
+    b.addEventListener('click', function(){ manual.value = ''; cands.innerHTML = ''; handle(k, 'manual'); });
+    cands.appendChild(b);
+  });
+  return hits;
+}
+manual.addEventListener('input', function(){ var v = manual.value; if(parseToken(v) && ROSTER[parseToken(v)]){ cands.innerHTML=''; return; } search(v); });
+document.getElementById('send').addEventListener('click', function(){
+  var v = manual.value, token = parseToken(v);
+  if(token && ROSTER[token]){ manual.value=''; cands.innerHTML=''; handle(token, 'manual'); return; }
+  var hits = search(v);
+  if(hits.length === 1){ manual.value=''; cands.innerHTML=''; handle(hits[0], 'manual'); return; }
+  if(!hits.length) show('ng', '該当なし', esc(v), '番号（英数字8文字）か氏名の一部を入れてください');
+});
+manual.addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('send').click(); });
 </script>
 </body>
 </html>
