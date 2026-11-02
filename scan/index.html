@@ -56,7 +56,9 @@ var GAS_URL = 'https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNB
 var laneSel = document.getElementById('lane');
 var card = document.getElementById('card');
 var logEl = document.getElementById('log');
-var mine = 0, lastToken = '', lastAt = 0;
+var mine = 0, lastToken = '', lastSeen = 0;
+var SAME_GAP = 5000;   // 同じQRが映り続けている間は再送しない（映らなくなって5秒で解除）
+var PAUSE_MS = 1500;   // 読み取り直後にカメラを一時停止する時間
 var queue = [];
 try{ laneSel.value = localStorage.getItem('lane') || '1'; }catch(e){}
 try{ queue = JSON.parse(localStorage.getItem('queue')||'[]'); }catch(e){ queue=[]; }
@@ -100,8 +102,8 @@ function send(token, fromQueue){
   if(!fromQueue) show('', '送信中…', token, '');
   return fetch(url, {method:'GET', redirect:'follow'}).then(function(r){ return r.json(); }).then(function(res){
     if(res.ok){
-      mine++; document.getElementById('mine').textContent = mine;
       if(res.count !== undefined) document.getElementById('total').textContent = res.count;
+      if(!res.dup){ mine++; document.getElementById('mine').textContent = mine; }
       if(res.dup){
         beep('ng');
         show('dup', '⚠ 受付済', res.name + ' 様　' + res.seat, res.prevTime + ' に受付済みです（今回 ' + res.time + '）');
@@ -131,9 +133,16 @@ function onScan(text){
   var token = parseToken(text);
   if(!token) return;
   var now = Date.now();
-  if(token === lastToken && now - lastAt < 3000) return;
-  lastToken = token; lastAt = now;
+  // 同じQRがカメラに映り続けている間は1回だけ送る。別のQRを読むか、5秒以上映らなくなったら解除
+  if(token === lastToken && now - lastSeen < SAME_GAP){ lastSeen = now; return; }
+  lastToken = token; lastSeen = now;
+  pauseCamera(PAUSE_MS);
   send(token, false);
+}
+function pauseCamera(ms){
+  if(!scanner) return;
+  try{ scanner.pause(true); }catch(e){ return; }
+  setTimeout(function(){ try{ if(scanner) scanner.resume(); }catch(e){} }, ms);
 }
 document.getElementById('send').addEventListener('click', function(){
   var v = document.getElementById('manual').value;
@@ -156,7 +165,7 @@ setInterval(function(){
   }).catch(function(){});
 }, 10000);
 
-// カメラ
+// カメラ（scanner は var の巻き上げで onScan からも参照できる）
 var scanner = null;
 document.getElementById('camBtn').addEventListener('click', function(){
   var btn = this;
