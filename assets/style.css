@@ -82,3 +82,27 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .stub::before{top:-7px}
 .stub::after{bottom:-7px}
 .stub-pre .stub-tear .a::after{content:"★";font-size:9px;color:#c9a35a;position:absolute;top:4px;right:5px;letter-spacing:0}
+
+/* チケット面をコンパクトに（幅390・高さ約660の画面でQRと座席まで入る） */
+.face{padding-top:18px}
+.face .meta{margin-bottom:10px}
+.face .t-name{font-size:30px;letter-spacing:.12em;margin:0}
+.face .t-name .t-sub{display:inline-block;font-size:15px;font-weight:600;letter-spacing:.08em;margin:0 0 0 10px;vertical-align:baseline}
+.face .t-line{font-size:15px;font-weight:600;letter-spacing:.05em;margin-top:2px}
+.face .t-line small{font-size:11px;margin-left:4px}
+.face .t-line .sep{color:var(--gold);margin:0 2px;font-weight:400}
+.face .hr{margin:12px 0}
+.face .v-name{font-size:30px;letter-spacing:.16em;line-height:1.3}
+.face .stub{margin:10px auto -4px;width:200px}
+.face .stub-main{padding:6px 9px 5px}
+.face .stub-t{font-size:19px}
+.face .stub-tear{width:58px}
+.face .stub::before,.face .stub::after{right:51px}
+.face .qr{width:184px;height:184px;padding:8px;margin-top:14px}
+.face .qr-cap{font-size:11px;margin-top:6px}
+.face .v-seat{font-size:52px}
+.face .v-seat .fl{font-size:20px}
+.face .times{margin-top:4px}
+.face .times .tv{font-size:28px}
+.face .hint{margin-top:14px}
+.face .stub-tear .b{font-size:6.5px;letter-spacing:.16em;white-space:nowrap}
