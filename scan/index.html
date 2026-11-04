@@ -20,6 +20,10 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 .card .big{font-size:30px;font-weight:700;letter-spacing:.06em;line-height:1.2}
 .card .mid{font-size:22px;font-weight:600;margin-top:4px}
 .card .sm{font-size:13px;opacity:.9;margin-top:6px}
+.tag{display:inline-block;margin-top:10px;padding:5px 16px;border-radius:8px;font-size:20px;font-weight:700;letter-spacing:.08em}
+.tag.s1{background:#c9a35a;color:#2a1a00}
+.tag.s2{background:#6f3fc9;color:#fff}
+.tag.s0{background:#3a3a3a;color:#bbb;font-weight:500;font-size:14px}
 .late{margin:0 12px 8px;padding:10px 12px;border-radius:10px;background:#5a3a00;border:1px solid var(--warn);font-size:14px;display:none}
 .late.show{display:block}
 .row{display:flex;gap:8px;margin:10px 12px 4px}
@@ -64,7 +68,7 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 <script>
 // ---------- 設定 ----------
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNBMi1UInY7z5L_RNXqZ1-bEyjfKMI0o6wGSRqGyH1twg/exec';
-var ROSTER = {"ueii2hz4":["星 渉","1階 A-12","テスト団体"],"hrivhhr9":["赤木 瑞穂","1階 A-13","テスト団体"],"fqv7hhtt":["山野 清香（テスト）","1階 A-14","テスト団体"]};          // token → [氏名, 座席, 団体]（生成時に埋め込み）
+var ROSTER = {"ueii2hz4":["星 渉","1階 A-12","テスト団体",2],"hrivhhr9":["赤木 瑞穂","1階 A-13","テスト団体",1],"fqv7hhtt":["山野 清香（テスト）","1階 A-14","テスト団体",0]};          // token → [氏名, 座席, 団体, サイン会 0なし/1あり/2前]（生成時に埋め込み）
 var SAME_GAP = 5000;                     // 同じQRが映り続けている間は再送しない（映らなくなって5秒で解除）
 var PAUSE_MS = 1500;                     // 読み取り直後にカメラを一時停止する時間
 var SYNC_MS  = 20000;                    // 他レーンの受付状況を取りに行く間隔
@@ -106,9 +110,15 @@ function beep(kind){
   }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate(kind==='ok'?60:[120,60,120]); }catch(e){}
 }
-function show(cls, big, mid, sm){
+function show(cls, big, mid, sm, tag){
   card.className = 'card ' + cls;
-  card.innerHTML = '<div class="big">'+big+'</div><div class="mid">'+(mid||'')+'</div><div class="sm">'+(sm||'')+'</div>';
+  card.innerHTML = '<div class="big">'+big+'</div><div class="mid">'+(mid||'')+'</div>'+(tag||'')+'<div class="sm">'+(sm||'')+'</div>';
+}
+// サイン会の表示（0=なし, 1=あり, 2=講演会前）。「前」はスタッフだけが見るこの画面で区別する
+function signTag(s){
+  if(s === 2) return '<div class="tag s2">サイン会・前</div>';
+  if(s === 1) return '<div class="tag s1">サイン会</div>';
+  return '<div class="tag s0">サイン会なし</div>';
 }
 function addLog(text, cls){
   var d = document.createElement('div'); d.textContent = text; if(cls) d.className = cls;
@@ -133,20 +143,20 @@ function handle(token, via){
     addLog(hms() + '  不明  ' + token, 'q');
     return;
   }
-  var name = p[0], seat = p[1];
+  var name = p[0], seat = p[1], tag = signTag(p[3]);
   var now = new Date();
   var prev = done[token];
   var localNew = !prev;
   if(prev){
     beep('ng');
     var where = prev.lane ? '（レーン' + prev.lane + '）' : '';
-    show('dup', '⚠ 受付済', esc(name) + ' 様　' + esc(seat), prev.t + ' に受付済みです' + where + '（今回 ' + hms(now) + '）');
+    show('dup', '⚠ 受付済', esc(name) + ' 様　' + esc(seat), prev.t + ' に受付済みです' + where + '（今回 ' + hms(now) + '）', tag);
     addLog(hms(now) + '  重複  ' + name + '  ' + seat, 'q');
   }else{
     done[token] = { t: hms(now), lane: lane, src: 'local' };
     mine++; save('mine_v2', mine); save('done_v2', done);
     beep('ok');
-    show('ok', '✓ ' + esc(name) + ' 様', esc(seat) + '　受付完了', hms(now) + '　レーン' + lane + (via==='manual' ? '　手入力' : ''));
+    show('ok', '✓ ' + esc(name) + ' 様', esc(seat) + '　受付完了', hms(now) + '　レーン' + lane + (via==='manual' ? '　手入力' : ''), tag);
     addLog(hms(now) + '  ' + name + '  ' + seat);
   }
   queue.push({ t: token, lane: lane, dev: DEV, ts: now.toISOString(), localNew: localNew, name: name });

@@ -67,3 +67,18 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .members .st{font-size:16px;font-weight:600;color:var(--red)}
 .members .ar{font-size:14px;color:var(--sub);margin-left:10px}
 .g-note{font-size:13px;background:#fff7e8;border:1px solid #efd9a8;border-radius:8px;padding:12px 14px;margin-top:14px}
+
+/* サイン会の半券バッジ（QRの真上。本の装丁に合わせた赤×金） */
+.stub{width:220px;margin:18px auto -6px;display:flex;position:relative;border:1.5px solid #c9a35a;border-radius:8px;overflow:hidden;
+  background:linear-gradient(135deg,#7d1222 0%,#5a0b17 100%);color:#f3dfae;box-shadow:0 2px 6px rgba(60,0,10,.25);text-align:left}
+.stub-main{flex:1;padding:8px 10px 7px}
+.stub-k{font-size:8px;letter-spacing:.32em;opacity:.85}
+.stub-t{font-size:22px;letter-spacing:.14em;line-height:1.1;margin-top:1px;color:#f6e4b4}
+.stub-s{font-size:7.5px;letter-spacing:.26em;opacity:.8;margin-top:2px}
+.stub-tear{width:64px;border-left:2px dashed rgba(243,223,174,.65);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.stub-tear .a{font-size:17px;letter-spacing:.12em}
+.stub-tear .b{font-size:7px;letter-spacing:.26em;opacity:.8;margin-top:2px}
+.stub::before,.stub::after{content:"";position:absolute;right:57px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:1.5px solid #c9a35a}
+.stub::before{top:-7px}
+.stub::after{bottom:-7px}
+.stub-pre .stub-tear .a::after{content:"★";font-size:9px;color:#c9a35a;position:absolute;top:4px;right:5px;letter-spacing:0}
