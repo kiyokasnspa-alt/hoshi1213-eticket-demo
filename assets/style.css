@@ -115,3 +115,18 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .modal-q{font-size:17px;margin:0 0 14px}
 .btn{display:block;width:100%;padding:13px;border-radius:8px;font-size:16px;font-weight:600;margin-top:10px;border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;font-family:inherit;cursor:pointer}
 .btn.primary{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* 半券の右側にグループ名を出す。団体は「代表者名さん」、ほかは VIP席 など。サイン会はこのグループごとに案内する（11/12） */
+.face .stub{width:272px}
+.face .stub-tear{width:126px}
+.face .stub::before,.face .stub::after{right:119px}
+.face .stub-tear .a.g{font-size:19px;letter-spacing:.04em;line-height:1.25;white-space:nowrap}
+.face .stub-tear .a.g.l5{font-size:17px;letter-spacing:.02em}
+.face .stub-tear .a.g.l6{font-size:15px;letter-spacing:0}
+.face .stub-tear .a.g .san{font-size:11px;letter-spacing:.04em;margin-left:2px}
+.face .stub-tear .b{font-size:8.5px;letter-spacing:.24em;margin:2px 0 0}
+/* サイン会のご案内（サイン会に参加する人だけ） */
+.sign-info{margin:16px auto 0;max-width:340px;text-align:left;border:1px solid #c9a35a;border-radius:8px;background:#fff9ec;padding:10px 14px 8px}
+.sign-info .si-t{font-size:15px;font-weight:600;letter-spacing:.12em;color:#7d1222;text-align:center;margin-bottom:4px}
+.sign-info ul{margin:0;padding-left:1.2em;font-size:13.5px;line-height:1.6;color:#333}
+.sign-info li{margin-bottom:3px}
