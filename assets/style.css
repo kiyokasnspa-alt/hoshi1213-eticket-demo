@@ -130,3 +130,28 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .sign-info .si-t{font-size:15px;font-weight:600;letter-spacing:.12em;color:#7d1222;text-align:center;margin-bottom:4px}
 .sign-info ul{margin:0;padding-left:1.2em;font-size:13.5px;line-height:1.6;color:#333}
 .sign-info li{margin-bottom:3px}
+
+/* ===== 文言の変更（瑞穂さんの赤字 2026-11-17） ===== */
+/* 題: 文字は全部同じ大きさ。2行（星渉「自分アップデート」／出版記念講演会） */
+.face .t-name{font-size:22px;font-weight:700;letter-spacing:.06em;line-height:1.35;margin:0 0 2px}
+.g-ev{font-size:20px;font-weight:600;letter-spacing:.06em;line-height:1.4;margin:4px 0 8px}
+/* 半券の左側: 「サイン会」を大きく、ゴールドの太字、中央揃え。下に 講演会前／講演会後 */
+.face .stub-main{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:9px 8px 8px}
+.face .stub-t{font-size:25px;font-weight:700;letter-spacing:.12em;line-height:1.15;margin:0;color:#f0d48a}
+.face .stub-w{font-size:13px;font-weight:700;letter-spacing:.22em;margin-top:3px;color:#f0d48a}
+/* 半券の右側: GROUP（小さめ）／数字（大きめ）／順番にご案内いたします。色は左側と同じ */
+.face .stub-tear{color:#f0d48a}
+.face .stub-tear .gk{font-size:10px;font-weight:700;letter-spacing:.3em;margin-right:-.3em}
+.face .stub-tear .gn{font-size:32px;font-weight:700;line-height:1.05}
+.face .stub-tear .b.gb{font-size:8.5px;letter-spacing:.04em;margin:2px 0 0;opacity:.9}
+/* 団体ページ: 一覧の説明と「代表者の方へ」 */
+.g-lead{font-size:13px;color:var(--sub);letter-spacing:.02em;margin:10px 2px 0}
+.g-lead p{margin:0 0 8px}
+.g-note p{margin:4px 0 8px}
+.g-note .gn-h{font-weight:700;margin:12px 0 2px}
+.g-note .ul{text-decoration:underline;text-underline-offset:2px}
+/* 団体ページ: 見出しと代表者名を1行に収める */
+.g-title{font-size:20px;letter-spacing:.06em}
+.g-list-h{font-size:18px!important;letter-spacing:.05em!important}
+/* 手順1の図: 会場の図の上に、入る扉を赤く出す（11/17） */
+.step .cap .st{color:var(--red)}
