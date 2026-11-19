@@ -155,3 +155,23 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .g-list-h{font-size:18px!important;letter-spacing:.05em!important}
 /* 手順1の図: 会場の図の上に、入る扉を赤く出す（11/17） */
 .step .cap .st{color:var(--red)}
+/* 団体ページの2ページ化（2026-11-19）: 1ページ目＝当日のご案内・重要なご案内・ボタン、2ページ目＝一覧 */
+.g-info{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:#fff}
+.g-info .gi-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.g-info .gi-row+.gi-row{border-top:1px solid var(--line)}
+.g-info .lbl{margin:0;font-size:13px;letter-spacing:.08em}
+.g-info .gi-v{font-size:22px;font-weight:700;color:var(--red);text-align:right}
+.g-info .gi-v small{display:block;font-size:12px;font-weight:400;color:var(--sub)}
+.notice{font-size:14px;line-height:1.75}
+.notice .nt-title{font-weight:700;margin-bottom:10px}
+.notice p{margin:0 0 10px}
+.notice .nt-lead{margin-bottom:14px}
+.notice .nt-h{font-weight:700;margin:20px 0 6px;color:var(--ink)}
+.notice .nt-only{font-weight:400;font-size:12px;color:var(--sub);margin-left:4px}
+.notice .nt-warn{border:2px solid var(--red);border-radius:8px;background:#fff6f4;padding:12px 14px 4px;margin:16px 0}
+.notice .nt-warn::before{content:"⚠️";display:block;font-size:18px;line-height:1;margin-bottom:6px}
+.notice .nt-warn p{margin:0 0 8px}
+.notice a{color:var(--red);word-break:break-all}
+.notice .nt-end{margin-top:20px}
+.g-go{font-size:18px;padding:16px;margin-top:0}
+.g-back{display:inline-block;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:10px}
