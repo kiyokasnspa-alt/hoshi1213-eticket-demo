@@ -175,3 +175,10 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .notice .nt-end{margin-top:34px}
 .g-go{font-size:18px;padding:16px;margin-top:0;text-align:center;letter-spacing:.08em}
 .g-back{display:inline-block;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:10px}
+/* 団体ページ1ページ目の LINE のご案内とご欠席の注意（瑞穂さん 11/19） */
+.g-line{margin:16px 0 0;border:2px solid #06c755;border-radius:8px;background:#f2fbf5;padding:14px 16px 4px;font-size:15px;line-height:1.85}
+.g-line p{margin:0 0 10px}
+.g-line .gl-name{font-weight:700}
+.g-line a{color:#05a346;font-weight:700;word-break:break-all}
+.g-absent{font-size:14px;line-height:1.8;color:var(--ink);margin:14px 2px 0}
+.g-lead .g-tap{font-size:15px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:12px}
