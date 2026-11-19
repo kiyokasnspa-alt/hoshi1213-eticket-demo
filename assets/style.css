@@ -166,19 +166,27 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .notice .nt-title{font-weight:700;margin-bottom:14px}
 .notice p{margin:0 0 16px}
 .notice .nt-lead{margin-bottom:8px}
-.notice .nt-h{font-weight:700;font-size:16px;line-height:1.6;margin:34px 0 12px;padding:8px 12px;background:#f3ece0;border-left:4px solid var(--gold);border-radius:4px;color:var(--ink)}
+.notice .nt-h{font-weight:700;font-size:16px;line-height:1.6;margin:34px 0 10px;padding:7px 12px;background:#f3ece0;border-radius:6px;color:var(--ink)}
 .notice .nt-only{display:block;font-weight:400;font-size:12px;color:var(--sub);margin:2px 0 0}
-.notice .nt-warn{border:2px solid var(--red);border-radius:8px;background:#fff6f4;padding:14px 16px 2px;margin:28px 0}
-.notice .nt-warn::before{content:"⚠️";display:block;font-size:20px;line-height:1;margin-bottom:10px}
+.notice .nt-warn{border-radius:10px;background:#fbefe9;padding:16px 16px 4px;margin:28px 0}
 .notice .nt-warn p{margin:0 0 12px}
 .notice a{color:var(--red);word-break:break-all}
 .notice .nt-end{margin-top:34px}
 .g-go{font-size:18px;padding:16px;margin-top:0;text-align:center;letter-spacing:.08em}
 .g-back{display:inline-block;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:10px}
 /* 団体ページ1ページ目の LINE のご案内とご欠席の注意（瑞穂さん 11/19） */
-.g-line{margin:16px 0 0;border:2px solid #06c755;border-radius:8px;background:#f2fbf5;padding:14px 16px 4px;font-size:15px;line-height:1.85}
+.g-line{margin:0;border-radius:10px;background:#eef8f1;padding:16px 16px 6px;font-size:15px;line-height:1.85}
 .g-line p{margin:0 0 10px}
 .g-line .gl-name{font-weight:700}
 .g-line a{color:#05a346;font-weight:700;word-break:break-all}
 .g-absent{font-size:14px;line-height:1.8;color:var(--ink);margin:14px 2px 0}
 .g-lead .g-tap{font-size:15px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:12px}
+.g-door{margin-top:4px}
+.g-door b{color:var(--red)}
+/* 団体ページの見た目の見直し（11/19 清香さん「線や枠が多くて機械的」）: 集合時間は枠なしで大きく、ボタンは最初の画面に */
+.g-time{margin:14px 0 14px;text-align:center}
+.g-time .gt-l{display:block;font-size:12px;letter-spacing:.2em;color:var(--sub)}
+.g-time .gt-v{display:block;font-size:40px;font-weight:700;color:var(--red);line-height:1.15;letter-spacing:.04em}
+.g-note{border:none;background:#fbf4e6;border-radius:10px;margin-top:0;padding:16px 16px 10px}
+.g-p2-h{font-size:24px;font-weight:700;letter-spacing:.1em;text-align:center;margin:6px 0 4px;color:var(--ink)}
+.g-p2-h::after{content:"";display:block;width:48px;height:2px;background:var(--gold);margin:10px auto 0}
