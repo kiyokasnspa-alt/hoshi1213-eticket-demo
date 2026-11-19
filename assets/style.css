@@ -25,6 +25,8 @@ section.card{padding:26px 22px 30px;border-bottom:1px solid var(--line)}
 .times{display:flex;justify-content:center;align-items:stretch;margin-top:6px}
 .times div{padding:0 22px}
 .times div+div{border-left:1px solid var(--line)}
+/* 11/19: 幅の狭いスマホ（360以下）では受付・完全着席の段の余白を詰める（幅320でページが横に動いていた） */
+@media (max-width:360px){.times div{padding:0 12px}}
 .times .tv{font-size:34px;font-weight:600;letter-spacing:.04em}
 .tent{display:inline-block;font-size:10px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle;letter-spacing:.1em}
 .qr{margin:18px auto 0;width:200px;height:200px;background:#fff;padding:10px;border:1px solid var(--line);border-radius:6px}
@@ -101,6 +103,9 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .face .qr{width:184px;height:184px;padding:8px;margin-top:14px}
 .face .qr-cap{font-size:11px;margin-top:6px}
 .face .v-seat{font-size:52px}
+/* 11/19: 席の大きな表示は折り返さない。2階のサイド席（「2階 左サイド-61」）は幅に合わせて小さくする（幅360以下で「左サイ／ド-61」と折り返していた） */
+.face .v-seat{white-space:nowrap}
+.face .v-seat.side{font-size:min(52px,11.5vw)}
 .face .v-seat .fl{font-size:20px}
 .face .times{margin-top:4px}
 .face .times .tv{font-size:28px}

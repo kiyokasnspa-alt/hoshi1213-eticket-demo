@@ -467,7 +467,8 @@ checkClosed(); setInterval(checkClosed, 30000);
 document.getElementById('camBtn').addEventListener('click', function(){
   var btn = this;
   if(scanner){ camHeld = false; scanner.stop().then(function(){ scanner=null; btn.textContent='カメラを開始'; }); return; }
-  scanner = new Html5Qrcode('reader');
+  // QRコードだけ読む（11/19: しぼらないと ZXing の道筋で1次元バーコードが先に働き、チケットの QR を8桁の数字と読み違える例があった。work/verify_qr/）
+  scanner = new Html5Qrcode('reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], verbose: false });
   scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, onScan, function(){})
     .then(function(){ btn.textContent = 'カメラを停止'; })
     .catch(function(err){ scanner = null; show('ng', 'カメラを開始できません', '', String(err)); });
