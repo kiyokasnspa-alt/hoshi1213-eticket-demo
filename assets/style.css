@@ -188,5 +188,5 @@ h3.sub{font-size:20px;font-weight:600;letter-spacing:.1em;text-align:center;marg
 .g-time .gt-l{display:block;font-size:12px;letter-spacing:.2em;color:var(--sub)}
 .g-time .gt-v{display:block;font-size:40px;font-weight:700;color:var(--red);line-height:1.15;letter-spacing:.04em}
 .g-note{border:none;background:#fbf4e6;border-radius:10px;margin-top:0;padding:16px 16px 10px}
-.g-p2-h{font-size:24px;font-weight:700;letter-spacing:.1em;text-align:center;margin:6px 0 4px;color:var(--ink)}
+.g-p2-h{font-size:28px;font-weight:700;letter-spacing:.08em;text-align:center;margin:6px 0 4px;color:var(--ink)}
 .g-p2-h::after{content:"";display:block;width:48px;height:2px;background:var(--gold);margin:10px auto 0}
