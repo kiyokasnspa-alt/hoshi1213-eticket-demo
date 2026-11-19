@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<title>受付 読み取り｜星渉 出版記念講演会</title>
+<title>受付 読み取り｜星渉「自分アップデート」出版記念講演会</title>
 <style>
 :root{--ok:#1d8a4b;--ng:#c8322b;--warn:#d07f00;--ink:#1e1e1e;--sub:#666;--line:#ddd}
 *{box-sizing:border-box}
@@ -40,13 +40,71 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 .log div{padding:6px 0;border-bottom:1px solid #333}
 .q{color:#ffb347}
 #camBtn{margin:8px auto;display:block;font-size:15px;padding:8px 18px;border-radius:8px;border:1px solid #555;background:#222;color:#fff}
+/* 読んだ結果を画面いっぱいに出す（スクロールしなくても見える。閉じると読み取りの画面に戻る） */
+.res{display:none;position:fixed;left:0;top:0;right:0;bottom:0;z-index:30;padding:18px 14px;text-align:center;color:#fff;overflow:auto}
+.res.show{display:flex;flex-direction:column;justify-content:center}
+.res.ok{background:var(--ok)} .res.dup{background:var(--warn)} .res.ng{background:var(--ng)}
+.res .big{font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.25}
+.res .mid{font-size:26px;font-weight:700;margin-top:8px}
+.res .tag{font-size:24px;margin-top:16px;padding:8px 22px}
+.res .tag.s0{font-size:17px}
+.res .sm{font-size:15px;margin-top:12px;opacity:.95}
+.res .pmark{margin-top:14px;font-size:13px}
+#resClose{margin:26px auto 0;display:block;width:86%;max-width:360px;font-size:20px;font-weight:800;padding:16px 10px;border-radius:12px;border:3px solid #fff;background:rgba(0,0,0,.25);color:#fff}
+.res-n{font-size:13px;margin-top:10px;opacity:.9;min-height:1.3em}
+.late.show{position:fixed;left:8px;right:8px;top:8px;margin:0;z-index:40;font-size:16px;font-weight:700;color:#fff}
+.samehint{display:none;margin:8px 12px 0;padding:8px 10px;border-radius:8px;background:#fff;color:#111;font-size:13px;font-weight:700;align-items:center;justify-content:space-between;gap:8px;line-height:1.4}
+.samehint.show{display:flex}
+.samehint button{flex:none;font-size:14px;font-weight:800;padding:8px 12px;border-radius:8px;border:2px solid #111;background:#ffd400;color:#111}
+/* このスマホのレーン（大きく出す。選ぶまで受付できない） */
+.lanebar{display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;color:#111;padding:6px 12px;font-size:14px;font-weight:700}
+.lanebar b{font-size:36px;line-height:1;font-weight:800;letter-spacing:.04em;min-width:1.2em;text-align:center}
+.lanebar button{font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid #888;background:#f2f2f2;color:#111}
+.lanebar.none{background:#c8322b;color:#fff}
+.lanebar.none b{font-size:22px}
+.lanepick{display:none;margin:10px 12px;padding:14px 12px;border-radius:12px;background:#fff;color:#111;text-align:center}
+.lanepick.show{display:block}
+.lp-t{font-size:18px;font-weight:800;margin-bottom:10px}
+.lp-b{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lp-b button{font-size:26px;font-weight:800;padding:14px 0;border-radius:10px;border:2px solid #111;background:#fff;color:#111}
+.lp-b button.ex{font-size:16px}
+.lp-b button.cur{background:#111;color:#fff}
+.lp-n{font-size:12px;color:#555;margin-top:8px}
+.lp-n.warn{color:#c8322b;font-weight:700}
+#camBtn:disabled{opacity:.35}
+/* 練習用ページを閉じたあとの表示 */
+.closedbox{display:none}
+body.closed .closedbox{display:block;margin:24px 14px;padding:26px 16px;border-radius:14px;background:#fff;color:#111;text-align:center}
+.closedbox .cb-t{font-size:22px;font-weight:800;margin-bottom:10px}
+.closedbox .cb-s{font-size:15px;line-height:1.7}
+body.closed #reader,body.closed .samehint,body.closed #camBtn,body.closed #card,body.closed .late,body.closed .row,body.closed .cands,body.closed .stats,body.closed .sync,body.closed .log,body.closed .ptools,body.closed .lanebar,body.closed .lanepick{display:none!important}
+/* 練習用ページだけの表示（body.practice のときだけ出る。本番・デモでは出ない） */
+.pbar,.ptools,.pmark{display:none}
+body.practice{background:#0c1d3f}
+body.practice header{background:#06122b}
+body.practice .pbar{display:block;position:sticky;top:0;z-index:20;background:#ffd400;color:#111;text-align:center;font-weight:800;font-size:17px;letter-spacing:.18em;padding:7px 8px;border-bottom:4px solid #111}
+body.practice .pbar small{display:block;font-size:12px;font-weight:600;letter-spacing:.04em}
+body.practice .pmark{display:block;margin-top:8px;font-size:12px;font-weight:700;color:#111;background:#ffd400;border-radius:6px;padding:3px 8px}
+body.practice .ptools{display:block;margin:0 12px 24px;padding:12px;border:1px dashed #ffd400;border-radius:10px;font-size:12px;color:#cfd6e6;text-align:center}
+.ptools button{font-size:15px;padding:10px 14px;border-radius:8px;border:1px solid #ffd400;background:#1a2b55;color:#ffd400;font-weight:700;margin-bottom:8px}
+.ptools button.arm{background:#c8322b;border-color:#c8322b;color:#fff}
 </style>
 </head>
 <body>
+<div class="pbar">練習用<small>本番の受付には使えません<span id="pclose"></span></small></div>
 <header>
-  <div>受付 読み取り <span id="dev" style="color:#777;font-size:12px"></span></div>
-  <div>レーン <select id="lane"><option>1</option><option>2</option><option>3</option><option>4</option><option>例外</option></select></div>
+  <div><span id="ttl">受付 読み取り</span> <span id="dev" style="color:#777;font-size:12px"></span></div>
+  <select id="lane" hidden><option>1</option><option>2</option><option>3</option><option>4</option><option>例外</option></select>
 </header>
+<div class="lanebar none" id="laneBar"><span>このスマホのレーン</span><b id="laneBig">未選択</b><button id="laneChange" type="button" style="display:none">変更</button></div>
+<div class="lanepick show" id="lanePick">
+  <div class="lp-t">このスマホのレーンを選んでください</div>
+  <div class="lp-b"><button type="button" data-lane="1">1</button><button type="button" data-lane="2">2</button><button type="button" data-lane="3">3</button><button type="button" data-lane="4">4</button><button type="button" data-lane="例外" class="ex">例外</button></div>
+  <div class="lp-n" id="laneNote"></div>
+</div>
+<div class="res" id="res"><div><div id="resBody"></div><button type="button" id="resClose">閉じる</button><div class="res-n" id="resNote"></div></div></div>
+<div class="closedbox" id="closedBox"><div class="cb-t">練習用のページは終了しました</div><div class="cb-s">当日の受付には、本番の読み取りページ<br>（いちばん上に黄色の帯が出ないページ）を使ってください。</div></div>
+<div class="samehint" id="sameHint"><span>同じチケットが映っています（さきほど読みました）</span><button type="button" id="sameAgain">もう一度読む</button></div>
 <div id="reader"></div>
 <button id="camBtn">カメラを開始</button>
 <div id="card" class="card"><div class="sm">QRコードをカメラに向けてください</div></div>
@@ -63,16 +121,33 @@ header select{font-size:16px;padding:4px 8px;border-radius:6px;border:1px solid 
 </div>
 <div class="sync" id="sync">サーバー未同期</div>
 <div class="log" id="log"></div>
+<div class="ptools">
+  <button id="resetBtn">練習の記録を消して、最初からやり直す</button>
+  <div id="resetMsg">全員が「まだ受付していない」状態に戻ります。ほかの練習用の端末も20秒ほどで戻ります。本番の記録には影響しません。</div>
+</div>
 
 <script src="../assets/html5-qrcode.min.js"></script>
 <script>
 // ---------- 設定 ----------
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbwPD3cALHE9oW5tdlBtWrCnNBMi1UInY7z5L_RNXqZ1-bEyjfKMI0o6wGSRqGyH1twg/exec';
 var ROSTER = {"ueii2hz4":["星 渉","1階 A-12","テスト団体",2],"hrivhhr9":["赤木 瑞穂","1階 A-13","テスト団体",1],"fqv7hhtt":["山野 清香（テスト）","1階 A-14","テスト団体",0]};          // token → [氏名, 座席, 団体, サイン会 0なし/1あり/2前]（生成時に埋め込み）
-var SAME_GAP = 5000;                     // 同じQRが映り続けている間は再送しない（映らなくなって5秒で解除）
-var PAUSE_MS = 1500;                     // 読み取り直後にカメラを一時停止する時間
+var SAME_GAP = 3000;                     // 同じQRが映り続けている間は読み直さない（カメラから外して3秒で解除）。読み直さない間は「同じチケットが映っています」と出し、「もう一度読む」ですぐ読める
+var RESULT_OK_MS = 3000;                 // 緑（受付完了）を画面いっぱいに出しておく時間。過ぎると自動で読み取りの画面に戻る（タップでもすぐ戻る）。0 にすると、ボタンを押すまで出したまま
+var RESULT_NG_MS = 0;                    // オレンジ（受付済）・赤を出しておく時間。0＝ボタンを押すまで出したまま（見落とさないため）
 var SYNC_MS  = 20000;                    // 他レーンの受付状況を取りに行く間隔
 var FETCH_TIMEOUT = 15000;
+// 練習用ページかどうか。練習用を作るとき（work/practice_build.py）だけ true に書き換える。本番・デモは false のまま
+var PRACTICE = false;
+var PRACTICE_CLOSE_AT = '';              // 練習用ページを閉じる日時（例 2026-12-12T22:00:00+09:00）。練習用を作るときに入る。空なら閉じない。GAS の PRACTICE_CLOSE_AT と揃える
+var PRACTICE_PREFIX = '0';               // 練習用チケットの番号は先頭が 0（本番の番号に 0 は使われない）。GAS の PRACTICE_PREFIX と揃える
+var NS = PRACTICE ? 'practice_' : '';    // 端末内の保存先の名前。練習用は別にして、同じスマホで本番の記録と混ざらないようにする
+var MODE_Q = PRACTICE ? '&mode=practice' : '';
+function isPracticeToken(t){ return String(t).charAt(0) === PRACTICE_PREFIX; }
+if(PRACTICE){
+  document.body.className += ' practice';
+  document.title = '【練習用】' + document.title;
+  document.getElementById('ttl').textContent = '【練習用】受付 読み取り';
+}
 
 // ---------- 状態（端末内に保存。再読み込みしても消えない） ----------
 var laneSel = document.getElementById('lane');
@@ -84,10 +159,35 @@ var mine = 0, lastToken = '', lastSeen = 0, sending = false, nextTry = 0;
 var DEV = '';
 function load(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
 function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-done = load('done_v2', {}); queue = load('queue_v2', []); mine = load('mine_v2', 0);
-DEV = load('dev_v2', ''); if(!DEV){ DEV = Math.random().toString(36).slice(2,6); save('dev_v2', DEV); }
-try{ laneSel.value = localStorage.getItem('lane') || '1'; }catch(e){}
-laneSel.addEventListener('change', function(){ try{localStorage.setItem('lane', laneSel.value);}catch(e){} });
+done = load(NS+'done_v2', {}); queue = load(NS+'queue_v2', []); mine = load(NS+'mine_v2', 0);
+DEV = load(NS+'dev_v2', ''); if(!DEV){ DEV = Math.random().toString(36).slice(2,6); save(NS+'dev_v2', DEV); }
+// レーンは、このスマホで一度選ぶまで「未選択」。選ぶまでカメラを開始できず、受付もできない（全員がレーン1のまま記録されるのを防ぐ）
+var laneChosen = false, lanePickOpen = false;
+try{ var _l = localStorage.getItem(NS+'lane'); if(_l){ laneSel.value = _l; laneChosen = (laneSel.value === _l); } }catch(e){}
+function renderLane(){
+  var bar = document.getElementById('laneBar'), pick = document.getElementById('lanePick'), note = document.getElementById('laneNote');
+  bar.className = 'lanebar' + (laneChosen ? '' : ' none');
+  document.getElementById('laneBig').textContent = laneChosen ? laneSel.value : '未選択';
+  document.getElementById('laneChange').style.display = (laneChosen && !lanePickOpen) ? '' : 'none';
+  pick.className = 'lanepick' + ((!laneChosen || lanePickOpen) ? ' show' : '');
+  var bs = pick.querySelectorAll('button');
+  for(var i = 0; i < bs.length; i++) bs[i].className = (bs[i].getAttribute('data-lane') === '例外' ? 'ex' : '') + ((laneChosen && bs[i].getAttribute('data-lane') === laneSel.value) ? ' cur' : '');
+  if(!laneChosen){ note.className = 'lp-n'; note.textContent = '受付机の番号と同じレーンを選びます。選ぶと、カメラを開始できます。'; }
+  else if(mine > 0){ note.className = 'lp-n warn'; note.textContent = '受付の途中でレーンを変えると、記録のレーンが混ざります。机を移るときだけ変えてください。'; }
+  else { note.className = 'lp-n'; note.textContent = '受付机の番号と同じレーンを選びます。'; }
+  document.getElementById('camBtn').disabled = !laneChosen;
+}
+function setLane(v){
+  laneSel.value = v; laneChosen = true; lanePickOpen = false;
+  try{ localStorage.setItem(NS+'lane', v); }catch(e){}
+  renderLane();
+}
+(function(){
+  var bs = document.getElementById('lanePick').querySelectorAll('button');
+  for(var i = 0; i < bs.length; i++) bs[i].addEventListener('click', function(){ setLane(this.getAttribute('data-lane')); });
+  document.getElementById('laneChange').addEventListener('click', function(){ lanePickOpen = true; renderLane(); });
+})();
+renderLane();
 document.getElementById('dev').textContent = '端末 ' + DEV;
 refreshStats();
 
@@ -112,8 +212,38 @@ function beep(kind){
 }
 function show(cls, big, mid, sm, tag){
   card.className = 'card ' + cls;
-  card.innerHTML = '<div class="big">'+big+'</div><div class="mid">'+(mid||'')+'</div>'+(tag||'')+'<div class="sm">'+(sm||'')+'</div>';
+  card.innerHTML = '<div class="big">'+big+'</div><div class="mid">'+(mid||'')+'</div>'+(tag||'')+'<div class="sm">'+(sm||'')+'</div>' +
+                   '<div class="pmark">練習です（本番の記録には入りません）</div>';
 }
+// 結果を画面いっぱいに出す。出している間はカメラの読み取りを止め、閉じると読み取りの画面に戻る
+var resEl = document.getElementById('res'), resTimer = null, resTick = null, resOpenAt = 0, camHeld = false;
+function openRes(cls){
+  clearTimeout(resTimer); clearInterval(resTick);
+  document.getElementById('resBody').innerHTML = card.innerHTML;
+  resEl.className = 'res show ' + cls; resOpenAt = Date.now();
+  if(scanner && !camHeld){ try{ scanner.pause(true); camHeld = true; }catch(e){} }
+  var ms = (cls === 'ok') ? RESULT_OK_MS : RESULT_NG_MS, note = document.getElementById('resNote');
+  document.getElementById('resClose').textContent = (cls === 'ok') ? '次の方へ' : '確認しました（閉じる）';
+  if(ms > 0){
+    var left = Math.ceil(ms / 1000);
+    note.textContent = 'あと ' + left + ' 秒で読み取りの画面に戻ります';
+    resTick = setInterval(function(){ left--; if(left > 0) note.textContent = 'あと ' + left + ' 秒で読み取りの画面に戻ります'; }, 1000);
+    resTimer = setTimeout(closeRes, ms);
+  }else{
+    note.textContent = 'ボタンを押すと、読み取りの画面に戻ります';
+  }
+}
+function closeRes(){
+  clearTimeout(resTimer); clearInterval(resTick);
+  if(!resEl || resEl.className.indexOf('show') < 0) return;
+  resEl.className = 'res';
+  lastSeen = Date.now();                 // 同じQRが映ったままでも、すぐには読み直さない
+  if(camHeld){ camHeld = false; try{ if(scanner) scanner.resume(); }catch(e){} }
+  try{ window.scrollTo(0, 0); }catch(e){}
+}
+document.getElementById('resClose').addEventListener('click', function(e){ e.stopPropagation(); if(Date.now() - resOpenAt >= 400) closeRes(); });
+resEl.addEventListener('click', function(){ if(resEl.className.indexOf(' ok') >= 0 && Date.now() - resOpenAt >= 400) closeRes(); });   // 緑は、画面のどこを押しても閉じる
+document.getElementById('late').addEventListener('click', function(){ this.className = 'late'; });
 // サイン会の表示（0=なし, 1=あり, 2=講演会前）。「前」はスタッフだけが見るこの画面で区別する
 function signTag(s){
   if(s === 2) return '<div class="tag s2">サイン会・前</div>';
@@ -133,14 +263,50 @@ function refreshStats(){
 function setSync(text, off){ var s = document.getElementById('sync'); s.textContent = text; s.className = 'sync' + (off ? ' off' : ''); }
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
+// ---------- 練習用ページを閉じる（練習用だけ。決めた日時を過ぎたら受付できなくする） ----------
+var pClosed = false;      // ※ closed という名前は使わない（window.closed とぶつかって書き換えられない）
+function closeAtMs(){ var t = (PRACTICE && PRACTICE_CLOSE_AT) ? Date.parse(PRACTICE_CLOSE_AT) : NaN; return isNaN(t) ? 0 : t; }
+function checkClosed(force){
+  if(pClosed || !PRACTICE) return pClosed;
+  if(force === true || (closeAtMs() && Date.now() >= closeAtMs())){
+    pClosed = true;
+    try{ closeRes(); }catch(e){}
+    try{ if(scanner){ scanner.stop(); scanner = null; } }catch(e){}
+    document.body.className += ' closed';
+    document.getElementById('pclose').textContent = '（終了しました）';
+  }
+  return pClosed;
+}
+if(closeAtMs()){
+  var _c = new Date(closeAtMs());
+  document.getElementById('pclose').textContent = '（' + (_c.getMonth()+1) + '/' + _c.getDate() + ' ' + ('0'+_c.getHours()).slice(-2) + ':' + ('0'+_c.getMinutes()).slice(-2) + ' まで）';
+}
+
 // ---------- 受付（端末内で即判定 → 送信は裏で） ----------
 function handle(token, via){
+  if(pClosed) return;
+  if(!laneChosen){
+    beep('ng');
+    show('ng', 'レーン未選択', '', '画面の上で、このスマホのレーンを選んでから受付してください');
+    return;
+  }
   var p = ROSTER[token];
   var lane = laneSel.value;
   if(!p){
     beep('ng');
-    show('ng', '✕ 見つかりません', esc(token), '名簿にないチケット番号です。例外レーンへご案内ください');
-    addLog(hms() + '  不明  ' + token, 'q');
+    if(PRACTICE && !isPracticeToken(token)){
+      // 練習用ページで、練習用ではないチケットを読んだ（当日に練習用ページを開いてしまったときもここに来る）
+      show('ng', '✕ 練習用ではありません', esc(token), 'このページは練習用です。本番のチケットは受付できません。本番の読み取りページで読んでください');
+      addLog(hms() + '  練習用ではない  ' + token, 'q');
+    }else if(!PRACTICE && isPracticeToken(token)){
+      // 本番のページで練習用チケットを読んだ
+      show('ng', '✕ 練習用のチケット', esc(token), '練習用のチケットです。本番の受付はできません。例外レーンへご案内ください');
+      addLog(hms() + '  練習用チケット  ' + token, 'q');
+    }else{
+      show('ng', '✕ 見つかりません', esc(token), '名簿にないチケット番号です。例外レーンへご案内ください');
+      addLog(hms() + '  不明  ' + token, 'q');
+    }
+    openRes('ng');
     return;
   }
   var name = p[0], seat = p[1], tag = signTag(p[3]);
@@ -154,13 +320,14 @@ function handle(token, via){
     addLog(hms(now) + '  重複  ' + name + '  ' + seat, 'q');
   }else{
     done[token] = { t: hms(now), lane: lane, src: 'local' };
-    mine++; save('mine_v2', mine); save('done_v2', done);
+    mine++; save(NS+'mine_v2', mine); save(NS+'done_v2', done);
     beep('ok');
     show('ok', '✓ ' + esc(name) + ' 様', esc(seat) + '　受付完了', hms(now) + '　レーン' + lane + (via==='manual' ? '　手入力' : ''), tag);
     addLog(hms(now) + '  ' + name + '  ' + seat);
   }
+  openRes(prev ? 'dup' : 'ok');
   queue.push({ t: token, lane: lane, dev: DEV, ts: now.toISOString(), localNew: localNew, name: name });
-  save('queue_v2', queue);
+  save(NS+'queue_v2', queue);
   refreshStats();
   pump();
 }
@@ -174,11 +341,11 @@ function fetchJson(url){
     .finally(function(){ if(timer) clearTimeout(timer); });
 }
 function pump(){
-  if(sending || !queue.length || Date.now() < nextTry) return;
+  if(pClosed || sending || !queue.length || Date.now() < nextTry) return;
   sending = true;
   var item = queue[0];
   var url = GAS_URL + '?t=' + encodeURIComponent(item.t) + '&lane=' + encodeURIComponent(item.lane) +
-            '&dev=' + encodeURIComponent(item.dev) + '&ts=' + encodeURIComponent(item.ts) + '&fmt=json';
+            '&dev=' + encodeURIComponent(item.dev) + '&ts=' + encodeURIComponent(item.ts) + '&fmt=json' + MODE_Q;
   fetchJson(url).then(function(res){
     if(res.ok){
       // 自分は「初めて」と判定したが、サーバーでは他レーンが先に受付していた → 遅れて知らせる
@@ -195,6 +362,8 @@ function pump(){
       }
       setSync('サーバー同期 ' + hms() + '　全体 ' + res.count + ' 名', false);
       queue.shift();
+    }else if(res.error === 'closed'){
+      queue = []; checkClosed(true);       // 練習用の受付は終了（サーバーの返事）
     }else if(res.error === 'not_found' || res.error === 'no_token'){
       addLog(hms() + '  サーバー名簿に無し  ' + item.t, 'q');
       queue.shift();
@@ -207,7 +376,7 @@ function pump(){
     setSync('通信できません。受付は続けられます（未送信 ' + queue.length + ' 件は電波が戻り次第送信）', true);
     nextTry = Date.now() + 5000;
   }).then(function(){
-    save('queue_v2', queue); save('done_v2', done); refreshStats();
+    save(NS+'queue_v2', queue); save(NS+'done_v2', done); refreshStats();
     sending = false;
     if(queue.length) setTimeout(pump, 50);
   });
@@ -216,37 +385,88 @@ setInterval(pump, 1000);
 
 // 他レーンの受付状況を取り込む（他レーンで受付済みの人をこの端末でも「受付済」と判定できるように）
 function sync(){
-  fetchJson(GAS_URL + '?op=list').then(function(res){
+  if(checkClosed()) return;
+  fetchJson(GAS_URL + '?op=list' + MODE_Q).then(function(res){
+    if(PRACTICE && res.closed){ checkClosed(true); return; }
     if(!res.ok) return;
+    if(PRACTICE){
+      // 練習用の一覧だけを取り込む（受付の仕組みが練習用に未対応のあいだは、本番側の一覧を混ぜない）
+      if(!res.practice){ setSync('練習用の記録先が準備中です（この端末の中だけで練習できます）', true); return; }
+      // ほかの端末が「最初からやり直す」を押していたら、この端末の記録も消す
+      if(res.epoch != null && String(res.epoch) !== String(epoch)){
+        if(epoch !== null){ clearLocal(); addLog(hms() + '  練習の記録が消されました（最初からやり直し）', 'q'); }
+        epoch = String(res.epoch); save(NS+'epoch', epoch);
+      }
+    }
     var n = 0;
     for(var k in res.done){
       if(!done[k]){ var a = res.done[k].split('|'); done[k] = { t: a[0], lane: a[1] || '', src: 'server' }; n++; }
     }
-    save('done_v2', done); refreshStats();
+    save(NS+'done_v2', done); refreshStats();
     setSync('サーバー同期 ' + hms() + '　全体 ' + res.count + ' 名', false);
   }).catch(function(){ if(!queue.length) setSync('通信できません。受付は続けられます', true); });
 }
 setInterval(sync, SYNC_MS); setTimeout(sync, 800);
 
+// ---------- 練習用だけ: 記録を消して最初からやり直す ----------
+var epoch = load(NS+'epoch', null);      // 練習の「何回目か」。サーバーの値と違ったら、この端末の記録を消す
+function clearLocal(){
+  done = {}; queue = []; mine = 0; lastToken = ''; lastSeen = 0;
+  save(NS+'done_v2', done); save(NS+'queue_v2', queue); save(NS+'mine_v2', mine);
+  logEl.innerHTML = ''; document.getElementById('late').className = 'late';
+  card.className = 'card'; card.innerHTML = '<div class="sm">QRコードをカメラに向けてください</div>';
+  refreshStats();
+}
+(function(){
+  if(!PRACTICE) return;
+  var btn = document.getElementById('resetBtn'), msg = document.getElementById('resetMsg'), armed = 0, label = btn.textContent;
+  btn.addEventListener('click', function(){
+    if(Date.now() - armed > 6000){          // 1回目は確認だけ。6秒以内にもう一度押すと実行
+      armed = Date.now(); btn.className = 'arm'; btn.textContent = '本当に消す（もう一度押す）';
+      setTimeout(function(){ if(Date.now() - armed >= 6000){ btn.className = ''; btn.textContent = label; } }, 6100);
+      return;
+    }
+    armed = 0; btn.className = ''; btn.textContent = label; btn.disabled = true;
+    msg.textContent = '消しています…';
+    fetchJson(GAS_URL + '?op=reset&mode=practice').then(function(res){
+      if(res.closed){ checkClosed(true); return; }
+      if(res.ok && res.reset){
+        clearLocal(); epoch = String(res.epoch); save(NS+'epoch', epoch); renderLane();
+        msg.textContent = '消しました（' + hms() + '）。全員が「まだ受付していない」状態に戻りました。ほかの練習用の端末も20秒ほどで戻ります。';
+      }else{
+        clearLocal();
+        msg.textContent = 'この端末の記録だけ消しました（練習用の記録先が準備中のため、サーバー側は消していません）。';
+      }
+    }).catch(function(){
+      msg.textContent = '通信できないため消せませんでした。電波のある場所でもう一度押してください。';
+    }).then(function(){ btn.disabled = false; });
+  });
+})();
+
 // ---------- カメラ ----------
+// 同じチケットを読み直さない間は、そのことを画面に出す（何も起きないと、止まったように見えるため）
+var sameTimer = null;
+function showSame(){
+  document.getElementById('sameHint').className = 'samehint show';
+  clearTimeout(sameTimer); sameTimer = setTimeout(hideSame, 1500);     // 映らなくなったら消す
+}
+function hideSame(){ clearTimeout(sameTimer); document.getElementById('sameHint').className = 'samehint'; }
+document.getElementById('sameAgain').addEventListener('click', function(){ lastToken = ''; lastSeen = 0; hideSame(); });   // 次に映ったら、すぐ読む（受付済みならオレンジが出る）
 function onScan(text){
+  if(resEl.className.indexOf('show') >= 0) return;     // 結果を出している間は読まない（カメラの一時停止が効かない端末でも、次の人の結果で上書きしない）
   var token = parseToken(text);
   if(!token) return;
   var now = Date.now();
-  if(token === lastToken && now - lastSeen < SAME_GAP){ lastSeen = now; return; }
+  if(token === lastToken && now - lastSeen < SAME_GAP){ lastSeen = now; showSame(); return; }
+  hideSame();
   lastToken = token; lastSeen = now;
-  pauseCamera(PAUSE_MS);
-  handle(token, 'camera');
-}
-function pauseCamera(ms){
-  if(!scanner) return;
-  try{ scanner.pause(true); }catch(e){ return; }
-  setTimeout(function(){ try{ if(scanner) scanner.resume(); }catch(e){} }, ms);
+  handle(token, 'camera');               // 結果を出している間は openRes がカメラを止め、閉じると再開する
 }
 var scanner = null;
+checkClosed(); setInterval(checkClosed, 30000);
 document.getElementById('camBtn').addEventListener('click', function(){
   var btn = this;
-  if(scanner){ scanner.stop().then(function(){ scanner=null; btn.textContent='カメラを開始'; }); return; }
+  if(scanner){ camHeld = false; scanner.stop().then(function(){ scanner=null; btn.textContent='カメラを開始'; }); return; }
   scanner = new Html5Qrcode('reader');
   scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, onScan, function(){})
     .then(function(){ btn.textContent = 'カメラを停止'; })
