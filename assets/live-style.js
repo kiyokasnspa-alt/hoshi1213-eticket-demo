@@ -25,12 +25,20 @@
   function apply(resp, pg) {
     if (!resp || resp.status !== 'ok') { bar('シートを読めませんでした（元の表示のままです）'); return; }
     var n = 0, textLater = 0, bad = 0;
+    // 列は見出しの文字で探す（列を足したり並べ替えたりしても読めるように）
+    var cols = resp.table.cols || [], ix = {};
+    cols.forEach(function (col, i) { var l = col.label || '';
+      if (ix.no == null && l.indexOf('番号') === 0) ix.no = i;
+      if (l.indexOf('直したい文字の大きさ') >= 0) ix.fs = i;
+      if (l.indexOf('直したい行間') >= 0) ix.lh = i;
+      if (l.indexOf('直したい文言') >= 0) ix.tx = i; });
+    if (ix.no == null) { bar('シートの列の見出しが見つかりません（元の表示のままです）'); return; }
     (resp.table.rows || []).forEach(function (r) {
       var c = r.c || [];
-      var no = c[0] && c[0].v; if (no == null) return;
+      var no = c[ix.no] && c[ix.no].v; if (no == null) return;
       var row = pg.rows[String(Math.round(parseFloat(no)))]; if (!row) return;
-      var fs = num(c[9]), lh = num(c[10]);
-      var tx = (c[11] && c[11].v != null) ? String(c[11].v).trim() : '';
+      var fs = ix.fs != null ? num(c[ix.fs]) : null, lh = ix.lh != null ? num(c[ix.lh]) : null;
+      var tx = (ix.tx != null && c[ix.tx] && c[ix.tx].v != null) ? String(c[ix.tx].v).trim() : '';
       if (fs != null && (fs < 6 || fs > 100)) { fs = null; bad++; }
       if (lh != null && (lh < 0.8 || lh > 4)) { lh = null; bad++; }
       if (fs == null && lh == null && !tx) return;
@@ -59,7 +67,7 @@
     window[cb] = function (resp) { try { apply(resp, pg); } finally { delete window[cb]; } };
     var s = document.createElement('script');
     s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET + '/gviz/tq?tqx=responseHandler:' + cb +
-            '&headers=0&sheet=' + encodeURIComponent(pg.tab) + '&range=A3:L400&_=' + Date.now();
+            '&headers=1&sheet=' + encodeURIComponent(pg.tab) + '&range=A2:Z400&_=' + Date.now();
     s.onerror = function () { bar('シートを読めませんでした（元の表示のままです）'); };
     document.head.appendChild(s);
   }).catch(function () {});
